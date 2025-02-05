@@ -23,6 +23,8 @@ Request:
     Tất cả các tabs với nội dung tương ứng đều hiển thị, ko thẻ nào dc active
  */
 
+// todo:
+
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
@@ -30,10 +32,14 @@ function Tabzy(selector) {
     const tabContainer = document.querySelector(selector);
     if (!tabContainer) return;
 
-    const tabItems = tabContainer.querySelectorAll('li');
-    const tabContents = document.querySelectorAll('div[id^="tab"]');
+    const tabItems = tabContainer.querySelectorAll('li'); // ? user can add selector argument
+    const firstLiElement = tabItems[0];
+    const tabContents = document.querySelectorAll('[id^="tab"]:not(#tabs)'); // ? user can add selector argument
 
     this._resetTabs = () => {
+        // ? need to check?
+        if (!tabItems || !tabContents) return;
+
         tabItems.forEach((tab) => {
             tab.classList.remove('tabzy--active');
         });
@@ -45,24 +51,34 @@ function Tabzy(selector) {
 
     if (tabItems.length) {
         this._resetTabs();
-        tabItems[0].classList.add('tabzy--active');
+        firstLiElement.classList.add('tabzy--active');
 
-        const targetLink = tabItems[0].querySelector('a');
-        if (targetLink) {
-            const targetId = targetLink.getAttribute('href');
+        const firstLinkEl = firstLiElement.querySelector('a');
+        if (firstLinkEl) {
+            const targetId = firstLinkEl.getAttribute('href');
             if (!targetId) return;
-            const targetContent = document.querySelector(targetId);
-            if (targetContent) {
-                targetContent.classList.remove('hidden');
+            const firstContentEl = document.querySelector(targetId);
+            if (firstContentEl) {
+                firstContentEl.classList.remove('hidden');
             }
         }
     }
 
-    tabContainer.onclick = (e) => {
-        this._resetTabs();
-        const targetId = e.target.getAttribute('href');
-        this.toggle(targetId);
+    this._activateTab = (targetLink) => {
+        if (!targetLink) return;
+
+        const targetParent = targetLink.parentElement;
     };
+
+    this._handleClick = (e) => {
+        this._resetTabs();
+        const targetLink = e.target.closest('a');
+        if (!targetLink) return;
+        const id = targetLink.getAttribute('href');
+        this.toggle(id);
+    };
+
+    tabContainer.addEventListener('click', this._handleClick);
 
     this.toggle = (id) => {
         this._resetTabs();
@@ -88,6 +104,8 @@ function Tabzy(selector) {
         tabContents.forEach((content) => {
             content.classList.remove('hidden');
         });
+
+        tabContainer.removeEventListener('click', this._handleClick);
     };
 }
 
